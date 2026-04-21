@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}DataSalary — Predict Your Salary{% endblock %}
+
+{% block extra_styles %}
+<style>
+  /* Section divider labels */
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #5A5A5A;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 1.25rem;
+  }
+
+  /* Form card */
+  .form-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 2.5rem;
+  }
+
+  /* Labels */
+  .form-label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #C0C0C0;
+    margin-bottom: 0.4rem;
+  }
+
+  /* Selects */
+  .form-select {
+    background-color: var(--bg-input) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 8px !important;
+    color: #E8E8E8 !important;
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(255, 92, 53, 0.18) !important;
+    outline: none;
+  }
+
+  .form-select option {
+    background-color: #1A1A1A;
+    color: #E8E8E8;
+  }
+
+  /* Bootstrap validation override */
+  .was-validated .form-select:invalid {
+    border-color: #dc3545 !important;
+  }
+
+  .was-validated .form-select:valid {
+    border-color: var(--border-subtle) !important;
+  }
+
+  /* Submit button */
+  .btn-predict {
+    background-color: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-family: "Syne", sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    padding: 0.75rem 1.5rem;
+    width: 100%;
+    transition: background-color 0.2s;
+  }
+
+  .btn-predict:hover,
+  .btn-predict:focus {
+    background-color: var(--accent-hover);
+    color: #FFFFFF;
+  }
+
+  /* Result card */
+  .result-card {
+    background-color: #1E1A16;
+    border: 1px solid var(--accent);
+    border-radius: 16px;
+  }
+
+  .result-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .result-amount {
+    font-family: "Syne", sans-serif;
+    font-weight: 800;
+    font-size: 2.75rem;
+    color: #FFFFFF;
+    line-height: 1.1;
+  }
+
+  /* Hero */
+  .hero-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .hero-heading {
+    font-family: "Syne", sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: #FFFFFF;
+    line-height: 1.1;
+  }
+
+  .hero-sub {
+    color: #6A6A6A;
+    font-weight: 300;
+    font-size: 1rem;
+  }
+
+  /* Footer */
+  footer {
+    font-size: 0.8rem;
+    color: #4A4A4A;
+    border-top: 1px solid var(--border-subtle);
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<main class="container py-5">
+
+  <!-- Hero -->
+  <div class="text-center mb-5">
+    <p class="hero-eyebrow mb-3">Machine Learning · Data Science</p>
+    <h1 class="hero-heading mb-3">Salary Predictor</h1>
+    <p class="hero-sub">
+      Answer seven quick questions to get an estimated annual salary<br class="d-none d-md-inline" />
+      based on real Kaggle survey data.
+    </p>
+  </div>
+
+  <!-- Result card -->
+  {% if predicted_salary is not none %}
+  <div class="row justify-content-center mb-4">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+      <div class="result-card p-4 text-center">
+        <p class="result-label mb-2">Predicted Annual Salary</p>
+        <p class="result-amount mb-0">
+          ${{ "{:,.2f}".format(predicted_salary | default(0) | float) }}
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Prediction Form -->
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+      <div class="form-card">
+        <form id="predict-form" action="/predict" method="POST" novalidate>
+
+          <!-- Personal Information -->
+          <p class="section-label">Personal Information</p>
+
+          <div class="row g-3 mb-3">
+            <!-- Age -->
+            <div class="col-12 col-sm-6">
+              <label for="age" class="form-label">Age Range</label>
+              <select class="form-select" id="age" name="age" required>
+                <option value="" disabled selected>Please choose an age range</option>
+                <option value="0">18–21</option>
+                <option value="1">22–24</option>
+                <option value="2">25–29</option>
+                <option value="3">30–34</option>
+                <option value="4">35–39</option>
+                <option value="5">40–44</option>
+                <option value="6">45–49</option>
+                <option value="7">50–54</option>
+                <option value="8">55–59</option>
+                <option value="9">60–69</option>
+                <option value="10">70+</option>
+              </select>
+            </div>
+
+            <!-- Gender -->
+            <div class="col-12 col-sm-6">
+              <label for="gender" class="form-label">Gender</label>
+              <select class="form-select" id="gender" name="gender" required>
+                <option value="" disabled selected>Please choose a gender</option>
+                <option value="0">Man</option>
+                <option value="1">Nonbinary</option>
+                <option value="2">Prefer not to say</option>
+                <option value="3">Prefer to self-describe</option>
+                <option value="4">Woman</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Country -->
+          <div class="mb-3">
+            <label for="country" class="form-label">Country</label>
+            <select class="form-select" id="country" name="country" required>
+              <option value="" disabled selected>Please choose a country</option>
+              <option value="0">Algeria</option>
+              <option value="1">Argentina</option>
+              <option value="2">Australia</option>
+              <option value="3">Bangladesh</option>
+              <option value="4">Belgium</option>
+              <option value="5">Brazil</option>
+              <option value="6">Cameroon</option>
+              <option value="7">Canada</option>
+              <option value="8">Chile</option>
+              <option value="9">China</option>
+              <option value="10">Colombia</option>
+              <option value="11">Czech Republic</option>
+              <option value="12">Ecuador</option>
+              <option value="13">Egypt</option>
+              <option value="14">Ethiopia</option>
+              <option value="15">France</option>
+              <option value="16">Germany</option>
+              <option value="17">Ghana</option>
+              <option value="18">Hong Kong (S.A.R.)</option>
+              <option value="19">Prefer not to disclose location</option>
+              <option value="20">India</option>
+              <option value="21">Indonesia</option>
+              <option value="22">Iran Islamic Republic of</option>
+              <option value="23">Ireland</option>
+              <option value="24">Israel</option>
+              <option value="25">Italy</option>
+              <option value="26">Japan</option>
+              <option value="27">Kenya</option>
+              <option value="28">Malaysia</option>
+              <option value="29">Mexico</option>
+              <option value="30">Morocco</option>
+              <option value="31">Nepal</option>
+              <option value="32">Netherlands</option>
+              <option value="33">Nigeria</option>
+              <option value="34">Other</option>
+              <option value="35">Pakistan</option>
+              <option value="36">Peru</option>
+              <option value="37">Philippines</option>
+              <option value="38">Poland</option>
+              <option value="39">Portugal</option>
+              <option value="40">Romania</option>
+              <option value="41">Russia</option>
+              <option value="42">Saudi Arabia</option>
+              <option value="43">Singapore</option>
+              <option value="44">South Africa</option>
+              <option value="45">South Korea</option>
+              <option value="46">Spain</option>
+              <option value="47">Sri Lanka</option>
+              <option value="48">Taiwan</option>
+              <option value="49">Thailand</option>
+              <option value="50">Tunisia</option>
+              <option value="51">Turkey</option>
+              <option value="52">Ukraine</option>
+              <option value="53">United Arab Emirates</option>
+              <option value="54">United Kingdom</option>
+              <option value="55">United States of America</option>
+              <option value="56">Viet Nam</option>
+              <option value="57">Zimbabwe</option>
+            </select>
+          </div>
+
+          <!-- Highest Degree -->
+          <div class="mb-4">
+            <label for="highest_deg" class="form-label">Highest Degree</label>
+            <select class="form-select" id="highest_deg" name="highest_deg" required>
+              <option value="" disabled selected>Please choose a degree</option>
+              <option value="0">Bachelor's degree</option>
+              <option value="1">Doctoral degree</option>
+              <option value="2">Prefer not to answer</option>
+              <option value="3">Master's degree</option>
+              <option value="4">No formal education past high school</option>
+              <option value="5">Professional doctorate</option>
+              <option value="6">Some college/university (no bachelor's)</option>
+            </select>
+          </div>
+
+          <!-- Job Information -->
+          <p class="section-label">Job Information</p>
+
+          <!-- Coding Experience -->
+          <div class="mb-3">
+            <label for="coding_exp" class="form-label">Coding Experience</label>
+            <select class="form-select" id="coding_exp" name="coding_exp" required>
+              <option value="" disabled selected>Please choose your coding experience</option>
+              <option value="0">1–3 years</option>
+              <option value="1">10–20 years</option>
+              <option value="2">20+ years</option>
+              <option value="3">3–5 years</option>
+              <option value="4">5–10 years</option>
+              <option value="5">Less than 1 year</option>
+              <option value="6">I have never written code</option>
+            </select>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <!-- Job Title -->
+            <div class="col-12 col-sm-6">
+              <label for="title" class="form-label">Job Title</label>
+              <select class="form-select" id="title" name="title" required>
+                <option value="" disabled selected>Please choose a job title</option>
+                <option value="0">Data Administrator</option>
+                <option value="1">Data Analyst</option>
+                <option value="2">Data Architect</option>
+                <option value="3">Data Engineer</option>
+                <option value="4">Data Scientist</option>
+                <option value="5">Developer Advocate</option>
+                <option value="6">Engineer (non-software)</option>
+                <option value="7">Machine Learning/MLOps Engineer</option>
+                <option value="8">Manager</option>
+                <option value="9">Other</option>
+                <option value="10">Research Scientist</option>
+                <option value="11">Software Engineer</option>
+                <option value="12">Statistician</option>
+                <option value="13">Teacher/Professor</option>
+              </select>
+            </div>
+
+            <!-- Company Size -->
+            <div class="col-12 col-sm-6">
+              <label for="company_size" class="form-label">Company Size</label>
+              <select class="form-select" id="company_size" name="company_size" required>
+                <option value="" disabled selected>Please choose a company size</option>
+                <option value="0">0–49 employees</option>
+                <option value="1">10,000 or more employees</option>
+                <option value="2">1,000–9,999 employees</option>
+                <option value="3">250–999 employees</option>
+                <option value="4">50–249 employees</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-predict">
+            Predict Salary
+          </button>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="text-center py-4 mt-4">
+  <p class="mb-0">Habib Saine &amp; Sumika Thapa &middot; BAIS:3300 &middot; University of Iowa</p>
+</footer>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (() => {
+    "use strict";
+    const forms = document.querySelectorAll("form");
+    Array.from(forms).forEach((form) => {
+      form.addEventListener(
+        "submit",
+        (event) => {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+</script>
+{% endblock %}
